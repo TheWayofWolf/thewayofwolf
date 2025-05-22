@@ -2,11 +2,13 @@
 <html lang="en">
 
 <head>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
   <style>
     :root {
-      --my-color: #34495e;
-      --my-color-accent: #2c3e50;
+      --my-color:#34495e;
+      --my-color-accent:#2c3e50;
       --black: #3c3c3c;
       --black-accent: #2d2d2d;
       --blue: #809bce;
@@ -19,12 +21,12 @@
       --pink-accent: #b495a3;
       --green: #74a892;
       --green-accent: #5e8675;
-      --red: #FF0000;
-      --red-accent: #b53f3f;
-      --orange: #d35400;
-      --orange-accent: #9e4102;
-      --yellow: #f1c40f;
-      --yellow-accent: #bd9a0c;
+      --red:#FF0000;
+      --red-accent:#b53f3f;
+      --orange:#d35400;
+      --orange-accent:#9e4102;
+      --yellow:#f1c40f;
+      --yellow-accent:#bd9a0c;
     }
 
     button {
@@ -65,7 +67,6 @@
       box-shadow: 0 0;
       background-color: var(--my-color-accent);
     }
-
     .black {
       background-color: var(--black);
     }
@@ -169,14 +170,20 @@
     }
 
     .red {
-      background-color: transparent;
-      border: 2px solid var(--red);
-      color: var(--red);
+      background-color: var(--red);
     }
 
     .red:hover {
       background-color: var(--red-accent);
-      color: #ffffff;
+    }
+
+    .red.threeD {
+      box-shadow: 0px 4px 0px var(--red-accent);
+    }
+
+    .red.threeD:active {
+      box-shadow: 0 0;
+      background-color: var(--red-accent);
     }
 
     .orange {
@@ -232,15 +239,19 @@
       font-size: 18px;
     }
   </style>
+
 </head>
 
 <body>
-  <button class="btn large red rounded" type="button" onclick="navigate()">See the Wall →</button>
+
+  <button class="btn large red rounded threeD" type="button" onclick="navigate()">See the Path →</button>
+  
   <script>
     function navigate() {
       window.open("https://example.com", '_blank').focus();
     }
   </script>
+
 </body>
 
 </html>
