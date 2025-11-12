@@ -89,6 +89,22 @@
             text-align: left;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
+            position: relative; /* Added for positioning the close button */
+        }
+        /* --- NEW: Styling for the close button --- */
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
         }
         #modal-content h2 {
             font-size: 2rem;
@@ -156,6 +172,9 @@
     <!-- Welcome Modal -->
     <div id="welcome-modal">
         <div id="modal-content">
+            <!-- NEW: Close button (the "cross") -->
+            <span class="close-button">&times;</span>
+
             <h2>Welcome to The Wolfstarter Pack.</h2>
             
             <!-- Desktop Message -->
@@ -187,6 +206,7 @@
         const messageElement = document.getElementById('login-message');
         const welcomeModal = document.getElementById('welcome-modal');
         const acknowledgeButton = document.getElementById('modal-acknowledge-button');
+        const closeModalButton = document.querySelector('.close-button'); // NEW: Get the close button
         let redirectUrl = '';
 
         redirectForm.addEventListener('submit', function(event) {
@@ -231,6 +251,20 @@
                 }
             }, 500);
         };
+        
+        // --- NEW: LOGIC TO CLOSE THE MODAL ---
+
+        // Function to close the modal by clicking the close button
+        closeModalButton.onclick = function() {
+            welcomeModal.style.display = 'none';
+        }
+
+        // Function to close the modal by clicking outside of the modal content
+        window.onclick = function(event) {
+            if (event.target == welcomeModal) {
+                welcomeModal.style.display = "none";
+            }
+        }
     </script>
 
 </body>
