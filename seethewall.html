@@ -252,6 +252,23 @@
       } else {
         target = "https://" + comHost + path;
       }
+
+      try {
+        if (window.top && window.top !== window.self) {
+          window.top.location.href = target;
+          return;
+        }
+      } catch (err) {
+        // cross-origin access blocked
+      }
+
+      try {
+        window.open(target, '_top');
+        return;
+      } catch (e) {
+        // blocked
+      }
+
       window.location.href = target;
     }
   </script>
