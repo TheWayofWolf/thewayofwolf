@@ -66,205 +66,99 @@
             font-weight: bold;
             min-height: 20px;
         }
-
-        /* Styling for the pop-up modal */
-        #welcome-modal {
-            display: none; /* Hidden by default */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        #modal-content {
-            max-width: 480px;
-            margin: 15vh auto;
-            padding: 40px;
-            background-color: #121212;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            text-align: left;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
-            position: relative; /* Added for positioning the close button */
-        }
-        /* --- NEW: Styling for the close button --- */
-        .close-button {
-            position: absolute;
-            top: 15px;
-            right: 25px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: #fff;
-        }
-        #modal-content h2 {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        #modal-content p {
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        #modal-acknowledge-button {
-            width: 100%;
-            padding: 15px;
-            margin-top: 20px;
-            background-color: #E53E3E;
-            border: none;
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-        #modal-acknowledge-button:hover {
-            background-color: #C53030;
-        }
-        #modal-acknowledge-button:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        
-        /* --- RESPONSIVE CONTENT --- */
-        .mobile-message {
-            display: none;
-        }
-        .desktop-message {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-message {
-                display: block;
-            }
-            .desktop-message {
-                display: none;
-            }
-        }
     </style>
 </head>
 <body>
 
     <div id="login-page-container">
         <h1 class="page-title">User Dashboard</h1>
-        <form id="redirect-form">
-            <input type="text" id="page-name" class="login-input" placeholder="Dashbaord Name" required>
-            <input type="text" id="page-code" class="login-input" placeholder="Dashboard Code" required>
+        <form id="login-form">
+            <input type="email" id="user-email" class="login-input" placeholder="Your Email Address" required>
+            <input type="password" id="user-secret" class="login-input" placeholder="Your Secret Code" required>
             <button type="submit" id="submit-button" class="login-button">Access Dashboard</button>
             <p id="login-message"></p>
         </form>
     </div>
 
-    <!-- Welcome Modal -->
-    <div id="welcome-modal">
-        <div id="modal-content">
-            <!-- NEW: Close button (the "cross") -->
-            <span class="close-button">&times;</span>
-
-            <h2>Welcome to The Wolfstarter Pack.</h2>
-            
-            <!-- Desktop Message -->
-            <div class="desktop-message">
-                <p>Once you’re in, log into your Notion account or create one if you don’t have one yet.</p>
-                <p>Then, you can start interacting with the pack, ticking tasks, journaling and progressing through the program.</p>
-                <p>This is your personal transformation hub.</p>
-            </div>
-
-            <!-- Mobile Message -->
-            <div class="mobile-message">
-                <p>Once you’re in, log into your Notion account or create one if you don’t have one yet.</p>
-                <p>Then, you can start interacting with the pack, ticking tasks, journaling and progressing through the program.</p>
-                <p>This is your personal transformation hub.</p>
-            </div>
-
-            <button id="modal-acknowledge-button">Let’s begin.</button>
-        </div>
-    </div>
-
     <script>
         // --- CONFIGURATION ---
-        // Set your base Notion URL here. For example: 'https://your-workspace.notion.site/'
-        const NOTION_BASE_URL = 'https://notion.so/';
+        // Replace with your actual Notion Database ID
+        const NOTION_DATABASE_ID = '2362750c28bf81ad8c5de3b92e316496';
+        // Replace with your Notion API Key. WARNING: This is not secure on the client-side.
+        // It is strongly recommended to handle API requests through a serverless function proxy.
+        const NOTION_API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your key
 
         // --- SCRIPT LOGIC ---
-        const redirectForm = document.getElementById('redirect-form');
+        const loginForm = document.getElementById('login-form');
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('login-message');
-        const welcomeModal = document.getElementById('welcome-modal');
-        const acknowledgeButton = document.getElementById('modal-acknowledge-button');
-        const closeModalButton = document.querySelector('.close-button'); // NEW: Get the close button
-        let redirectUrl = '';
 
-        redirectForm.addEventListener('submit', function(event) {
+        loginForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             messageElement.textContent = '';
             submitButton.disabled = true;
             submitButton.textContent = 'Verifying...';
 
-            const pageNameInput = document.getElementById('page-name').value;
-            const pageCodeInput = document.getElementById('page-code').value;
+            const emailInput = document.getElementById('user-email').value.trim();
+            const secretInput = document.getElementById('user-secret').value.trim();
 
-            // Replace all spaces in the page name with a hyphen
-            const formattedPageName = pageNameInput.trim().replace(/\s+/g, '-');
+            try {
+                const response = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${NOTION_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Notion-Version': '2022-06-28'
+                    },
+                    body: JSON.stringify({
+                        filter: {
+                            and: [
+                                {
+                                    property: 'Email',
+                                    email: {
+                                        equals: emailInput
+                                    }
+                                },
+                                {
+                                    property: 'Secret Code',
+                                    rich_text: {
+                                        equals: secretInput
+                                    }
+                                }
+                            ]
+                        }
+                    })
+                });
 
-            // Combine the formatted page name and page code to create the final path
-            const notionPagePath = `${formattedPageName}-${pageCodeInput.trim()}`;
-
-            // Construct the full redirect URL
-            redirectUrl = NOTION_BASE_URL + notionPagePath;
-
-            // Show the welcome modal
-            welcomeModal.style.display = 'block';
-
-            // Reset the submit button
-            submitButton.disabled = false;
-            submitButton.textContent = 'Access Dashboard';
-        });
-
-        acknowledgeButton.onclick = function() {
-            acknowledgeButton.textContent = 'Redirecting...';
-            acknowledgeButton.disabled = true;
-            
-            setTimeout(() => {
-                if (redirectUrl) {
-                    window.location.href = redirectUrl;
-                } else {
-                    // This is a fallback in case something goes wrong
-                    messageElement.textContent = 'Could not generate the redirect URL.';
-                    welcomeModal.style.display = 'none';
-                    acknowledgeButton.textContent = 'Let’s begin.';
-                    acknowledgeButton.disabled = false;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `API Error: ${response.status}`);
                 }
-            }, 500);
-        };
-        
-        // --- NEW: LOGIC TO CLOSE THE MODAL ---
 
-        // Function to close the modal by clicking the close button
-        closeModalButton.onclick = function() {
-            welcomeModal.style.display = 'none';
-        }
+                const data = await response.json();
 
-        // Function to close the modal by clicking outside of the modal content
-        window.onclick = function(event) {
-            if (event.target == welcomeModal) {
-                welcomeModal.style.display = "none";
+                if (data.results.length > 0) {
+                    // Assuming the 'Dashboard' property is a URL type
+                    const dashboardUrl = data.results[0].properties.Dashboard.url;
+                    if (dashboardUrl) {
+                        submitButton.textContent = 'Redirecting...';
+                        window.location.href = dashboardUrl;
+                    } else {
+                        throw new Error("Dashboard URL not found for this user.");
+                    }
+                } else {
+                    messageElement.textContent = 'Access denied. Invalid email or secret code.';
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Access Dashboard';
+                }
+
+            } catch (error) {
+                console.error('Login system error:', error);
+                messageElement.textContent = `System Error: ${error.message}`;
+                submitButton.disabled = false;
+                submitButton.textContent = 'Access Dashboard';
             }
-        }
+        });
     </script>
 
 </body>
