@@ -238,7 +238,21 @@
   <button class="btn large red rounded" type="button" onclick="navigate()">See the Wall →</button>
   <script>
     function navigate() {
-      window.open("https://thewayofwolf.com/the-wall", '_parent').focus();
+      var host = window.location.hostname.toLowerCase();
+      var superHost = "thewayofwolf.super.site";
+      var comHost = "thewayofwolf.com";
+      var useFixedPath = true;
+      var fixedPath = "/the-wall";
+      var path = useFixedPath ? fixedPath : window.location.pathname + window.location.search + window.location.hash;
+      var target;
+      if (host.includes("super.site")) {
+        target = "https://" + superHost + path;
+      } else if (host.includes(".com")) {
+        target = "https://" + comHost + path;
+      } else {
+        target = "https://" + comHost + path;
+      }
+      window.location.href = target;
     }
   </script>
 </body>
