@@ -247,8 +247,44 @@
   <button class="btn large red rounded threeD" type="button" onclick="navigate()">Join the Challenge →</button>
   
   <script>
+    /**
+     * Redirect based on the current page's domain.
+     * - If the current hostname is super.site or a subdomain of super.site, go to the same page path on the super.site domain.
+     * - Else if the hostname ends with .com, go to the same page path on the .com domain.
+     * - Otherwise fall back to the .com domain.
+     *
+     * Both domains host the same page path; only the domain differs.
+     *
+     * Update the domain constants below if you want to change the specific target hosts.
+     */
     function navigate() {
-      window.open("https://thewayofwolf.com/join-the-challenge", '_parent').focus();
+      var host = window.location.hostname.toLowerCase();
+
+      // Configure your two domains (these are the canonical targets)
+      var superHost = "thewayofwolf.super.site";
+      var comHost = "thewayofwolf.com";
+
+      // The page path is the same on both domains. Use a fixed path or preserve current pathname.
+      // If you want to always go to "/join-the-challenge", set useFixedPath = true.
+      var useFixedPath = true;
+      var fixedPath = "/join-the-challenge";
+
+      var path = useFixedPath ? fixedPath : window.location.pathname + window.location.search + window.location.hash;
+
+      var target;
+      if (host === "super.site" || host.endsWith(".super.site")) {
+        // If we're on super.site (or a subdomain), go to the super.site target
+        target = "https://" + superHost + path;
+      } else if (host.endsWith(".com")) {
+        // If we're on a .com host, go to the .com target
+        target = "https://" + comHost + path;
+      } else {
+        // Fallback to the .com site
+        target = "https://" + comHost + path;
+      }
+
+      // Navigate in the same tab (similar to using target='_parent' earlier)
+      window.location.href = target;
     }
   </script>
 
