@@ -3,33 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard Access (Debug Mode)</title>
+    <title>User Dashboard Access</title>
     <style>
-        /* All CSS styles remain the same */
+        /* All your CSS styles remain the same */
         #login-page-container { max-width: 420px; margin: 10vh auto; padding: 40px; background-color: #121212; border-radius: 10px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         #login-page-container .page-title { color: #ffffff; font-size: 2.5rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 40px; }
         #login-page-container .login-input { width: 100%; box-sizing: border-box; padding: 15px; margin-bottom: 20px; background-color: #1a1a1a; border: 1px solid #333; color: #fff; font-size: 16px; border-radius: 5px; }
         #login-page-container .login-button { width: 100%; padding: 15px; background-color: #E53E3E; border: none; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: all 0.3s; }
-        #login-page-container .login-button:hover { background-color: #C53030; }
-        #login-page-container .login-button:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
-        
-        /* Styles for the debug message area */
-        #login-message {
-            margin-top: 15px;
-            color: #d1d1d1; /* Lighter color for readability */
-            font-weight: normal;
-            min-height: 100px; /* More space for logs */
-            text-align: left;
-            font-family: 'Courier New', Courier, monospace; /* Monospaced font for logs */
-            background-color: #1e1e1e;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            white-space: pre-wrap; /* Allow line breaks */
-            word-wrap: break-word;
-        }
-        .error-log { color: #ffbaba; font-weight: bold; }
-        .success-log { color: #b4f1b4; }
+        #login-message { margin-top: 15px; color: #ffbaba; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -40,103 +21,61 @@
             <input type="email" id="user-email" class="login-input" placeholder="Your Email Address" required>
             <input type="password" id="user-secret" class="login-input" placeholder="Your Secret Code" required>
             <button type="submit" id="submit-button" class="login-button">Access Dashboard</button>
-            <pre id="login-message">Debug log will appear here...</pre>
+            <p id="login-message"></p>
         </form>
     </div>
 
     <script>
         // --- CONFIGURATION ---
-        // 1. Replace with your actual Notion Database ID
-        const NOTION_DATABASE_ID = '2362750c28bf81ad8c5de3b92e316496';
-        // 2. Replace with your actual Notion API Key.
-        const NOTION_API_KEY = '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'; // e.g., 'secret_xxxxxxxxxx'
+        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+        const PROXY_URL = 'https://script.google.com/macros/s/AKfycbyOjXhCwO4oWamhC0isLXiHSv_3Sc0yGnsOJMdPAe3qJqStY9EIECB8ZLBiFGsuPH85/exec';
 
-        // --- SCRIPT LOGIC (DEBUG MODE) ---
+        // --- SCRIPT LOGIC ---
         const loginForm = document.getElementById('login-form');
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('login-message');
 
-        // Helper function to log messages to the screen and the console
-        function logStep(message, type = 'info') {
-            console.log(message);
-            const logClass = type === 'error' ? 'error-log' : (type === 'success' ? 'success-log' : '');
-            messageElement.innerHTML += `<span class="${logClass}">> ${message}\n</span>`;
-        }
-
         loginForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-            
-            // 1. Initialize
-            messageElement.innerHTML = ''; // Clear previous logs
-            logStep('Initialization: Form submitted.');
+            messageElement.textContent = '';
             submitButton.disabled = true;
             submitButton.textContent = 'Verifying...';
 
             const emailInput = document.getElementById('user-email').value.trim();
             const secretInput = document.getElementById('user-secret').value.trim();
-            logStep(`Inputs captured. Email: ${emailInput}`);
-
-            // 2. Construct URLs
-            const apiUrl = `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`;
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-            logStep(`Target API URL: ${apiUrl}`);
-            logStep(`Proxy URL constructed: ${proxyUrl}`);
 
             try {
-                // 3. Prepare the request
-                const requestOptions = {
+                // Call your new, secure Google Script proxy
+                const response = await fetch(PROXY_URL, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${NOTION_API_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Notion-Version': '2022-06-28'
-                    },
-                    body: JSON.stringify({
-                        filter: {
-                            and: [
-                                { property: 'Email', email: { equals: emailInput } },
-                                { property: 'Secret Code', rich_text: { equals: secretInput } }
-                            ]
-                        }
-                    })
-                };
-                logStep('Request headers and body prepared.');
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Required header for Apps Script
+                    body: JSON.stringify({ email: emailInput, secret: secretInput })
+                });
 
-                // 4. THE FETCH CALL - This is where "Failed to fetch" happens
-                logStep('Attempting to fetch data via proxy...');
-                const response = await fetch(proxyUrl, requestOptions);
-                logStep(`Fetch call successful! Response status: ${response.status} ${response.statusText}`, 'success');
-
-                // 5. Process the response
-                logStep('Attempting to parse response as JSON...');
                 const data = await response.json();
-                logStep('JSON parsing successful.', 'success');
-                console.log('Received data:', data); // Log full data object to console for inspection
 
                 if (data.object === 'error') {
-                    throw new Error(`Notion API Error: ${data.message}`);
+                    // Display the actual error message from Notion
+                    throw new Error(data.message || `API Error: Status ${data.status}`);
                 }
 
                 if (data.results && data.results.length > 0) {
-                    logStep('User found in database.', 'success');
                     const dashboardUrl = data.results[0].properties.Dashboard.url;
-
                     if (dashboardUrl) {
-                        logStep(`Dashboard URL found: ${dashboardUrl}`, 'success');
                         submitButton.textContent = 'Redirecting...';
                         window.location.href = dashboardUrl;
                     } else {
-                        throw new Error("User found, but Dashboard URL is missing.");
+                        throw new Error("Login successful, but Dashboard URL is missing in Notion.");
                     }
                 } else {
-                    logStep('Access denied. No matching record found in Notion.', 'error');
+                    messageElement.textContent = 'Access denied. Invalid email or secret code.';
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Access Dashboard';
                 }
 
             } catch (error) {
-                // 6. CATCH THE ERROR
-                logStep(`SCRIPT FAILED: ${error.name}`, 'error');
-                logStep(`DETAILS: ${error.message}`, 'error');
-                console.error("Full error object:", error); // Log the full error to the console
+                console.error('Login system error:', error);
+                messageElement.textContent = `${error.message}`;
                 submitButton.disabled = false;
                 submitButton.textContent = 'Access Dashboard';
             }
