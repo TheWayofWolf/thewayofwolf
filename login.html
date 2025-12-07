@@ -3,22 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard Access</title>
+    <title>User Dashboard Access (Debug Mode)</title>
     <style>
-        /* Styling for the login page container */
+        /* All CSS styles remain the same */
         #login-page-container { max-width: 420px; margin: 10vh auto; padding: 40px; background-color: #121212; border-radius: 10px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        /* Styling for the page title */
         #login-page-container .page-title { color: #ffffff; font-size: 2.5rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 40px; }
-        /* Styling for the input fields */
         #login-page-container .login-input { width: 100%; box-sizing: border-box; padding: 15px; margin-bottom: 20px; background-color: #1a1a1a; border: 1px solid #333; color: #fff; font-size: 16px; border-radius: 5px; }
-        /* Styling for the login button */
         #login-page-container .login-button { width: 100%; padding: 15px; background-color: #E53E3E; border: none; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: all 0.3s; }
-        /* Hover effect for the login button */
         #login-page-container .login-button:hover { background-color: #C53030; }
-        /* Styling for a disabled login button */
         #login-page-container .login-button:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
-        /* Styling for the login message area */
-        #login-message { margin-top: 15px; color: #ffbaba; font-weight: bold; min-height: 20px; }
+        
+        /* Styles for the debug message area */
+        #login-message {
+            margin-top: 15px;
+            color: #d1d1d1; /* Lighter color for readability */
+            font-weight: normal;
+            min-height: 100px; /* More space for logs */
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace; /* Monospaced font for logs */
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: pre-wrap; /* Allow line breaks */
+            word-wrap: break-word;
+        }
+        .error-log { color: #ffbaba; font-weight: bold; }
+        .success-log { color: #b4f1b4; }
     </style>
 </head>
 <body>
@@ -29,7 +40,7 @@
             <input type="email" id="user-email" class="login-input" placeholder="Your Email Address" required>
             <input type="password" id="user-secret" class="login-input" placeholder="Your Secret Code" required>
             <button type="submit" id="submit-button" class="login-button">Access Dashboard</button>
-            <p id="login-message"></p>
+            <pre id="login-message">Debug log will appear here...</pre>
         </form>
     </div>
 
@@ -40,31 +51,42 @@
         // 2. Replace with your actual Notion API Key.
         const NOTION_API_KEY = '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'; // e.g., 'secret_xxxxxxxxxx'
 
-        // --- SCRIPT LOGIC ---
+        // --- SCRIPT LOGIC (DEBUG MODE) ---
         const loginForm = document.getElementById('login-form');
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('login-message');
 
+        // Helper function to log messages to the screen and the console
+        function logStep(message, type = 'info') {
+            console.log(message);
+            const logClass = type === 'error' ? 'error-log' : (type === 'success' ? 'success-log' : '');
+            messageElement.innerHTML += `<span class="${logClass}">> ${message}\n</span>`;
+        }
+
         loginForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-            messageElement.textContent = '';
+            
+            // 1. Initialize
+            messageElement.innerHTML = ''; // Clear previous logs
+            logStep('Initialization: Form submitted.');
             submitButton.disabled = true;
             submitButton.textContent = 'Verifying...';
 
             const emailInput = document.getElementById('user-email').value.trim();
             const secretInput = document.getElementById('user-secret').value.trim();
+            logStep(`Inputs captured. Email: ${emailInput}`);
 
-            // The target Notion API endpoint
+            // 2. Construct URLs
             const apiUrl = `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`;
-
-            // Using a public CORS proxy to bypass browser security restrictions
             const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+            logStep(`Target API URL: ${apiUrl}`);
+            logStep(`Proxy URL constructed: ${proxyUrl}`);
 
             try {
-                const response = await fetch(proxyUrl, {
+                // 3. Prepare the request
+                const requestOptions = {
                     method: 'POST',
                     headers: {
-                        // The API key is sent directly to Notion through the proxy
                         'Authorization': `Bearer ${NOTION_API_KEY}`,
                         'Content-Type': 'application/json',
                         'Notion-Version': '2022-06-28'
@@ -77,32 +99,44 @@
                             ]
                         }
                     })
-                });
+                };
+                logStep('Request headers and body prepared.');
 
+                // 4. THE FETCH CALL - This is where "Failed to fetch" happens
+                logStep('Attempting to fetch data via proxy...');
+                const response = await fetch(proxyUrl, requestOptions);
+                logStep(`Fetch call successful! Response status: ${response.status} ${response.statusText}`, 'success');
+
+                // 5. Process the response
+                logStep('Attempting to parse response as JSON...');
                 const data = await response.json();
-                
-                // Check for Notion's specific error messages
+                logStep('JSON parsing successful.', 'success');
+                console.log('Received data:', data); // Log full data object to console for inspection
+
                 if (data.object === 'error') {
-                    throw new Error(data.message || `API Error: ${data.status}`);
+                    throw new Error(`Notion API Error: ${data.message}`);
                 }
 
                 if (data.results && data.results.length > 0) {
+                    logStep('User found in database.', 'success');
                     const dashboardUrl = data.results[0].properties.Dashboard.url;
+
                     if (dashboardUrl) {
+                        logStep(`Dashboard URL found: ${dashboardUrl}`, 'success');
                         submitButton.textContent = 'Redirecting...';
                         window.location.href = dashboardUrl;
                     } else {
-                        throw new Error("Dashboard URL not found for this user.");
+                        throw new Error("User found, but Dashboard URL is missing.");
                     }
                 } else {
-                    messageElement.textContent = 'Access denied. Invalid email or secret code.';
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Access Dashboard';
+                    logStep('Access denied. No matching record found in Notion.', 'error');
                 }
 
             } catch (error) {
-                console.error('Login system error:', error);
-                messageElement.textContent = `System Error: ${error.message}`;
+                // 6. CATCH THE ERROR
+                logStep(`SCRIPT FAILED: ${error.name}`, 'error');
+                logStep(`DETAILS: ${error.message}`, 'error');
+                console.error("Full error object:", error); // Log the full error to the console
                 submitButton.disabled = false;
                 submitButton.textContent = 'Access Dashboard';
             }
