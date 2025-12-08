@@ -248,42 +248,29 @@
   
   <script>
     function navigate() {
-      var host = window.location.hostname.toLowerCase();
+      // Get the referrer (the page hosting the iframe)
+      var parentUrl = document.referrer || ""; 
+
       var superHost = "thewayofwolf.super.site";
       var comHost = "thewayofwolf.com";
-      var useFixedPath = true;
       var fixedPath = "/join-the-challenge";
-      var path = useFixedPath ? fixedPath : window.location.pathname + window.location.search + window.location.hash;
-      var target;
-      if (host.includes("super.site")) {
-        target = "https://" + superHost + path;
-      } else if (host.includes(".com")) {
-        target = "https://" + comHost + path;
-      } else {
-        target = "https://" + comHost + path;
-      }
+      
+      // Default to the main .com site
+      var targetDomain = comHost;
 
-      // Try to navigate the top-level window first. Accessing window.top or its properties
-      // may throw in cross-origin iframes, so wrap in try/catch.
+      // Check if the referrer is the super.site URL
+      if (parentUrl.includes("super.site")) {
+        targetDomain = superHost;
+      }
+      
+      var target = "https://" + targetDomain + fixedPath;
+
+      // Force the redirect on the TOP window
       try {
-        if (window.top && window.top !== window.self) {
-          window.top.location.href = target;
-          return;
-        }
-      } catch (err) {
-        // cross-origin access blocked; fall through to safe fallbacks
+          window.open(target, '_top');
+      } catch (e) {
+          console.error("Redirection failed:", e);
       }
-
-      // Fallback: attempt to open in the top browsing context
-      try {
-        window.open(target, '_top');
-        return;
-      } catch (err) {
-        // window.open could be blocked
-      }
-
-      // Final fallback: navigate current window
-      window.location.href = target;
     }
   </script>
 
