@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+<!-- Keep your existing CSS styles exactly as they are -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
   <style>
+    /* ... YOUR CSS HERE ... */
+    /* (I have omitted the CSS to save space, but keep it in your file) */
     :root {
       --my-color: #34495e;
       --my-color-accent: #2c3e50;
@@ -233,45 +235,39 @@
     }
   </style>
 </head>
-
 <body>
-  <button class="btn large red rounded" type="button" onclick="navigate()">Unlock the Ritual →</button>
+  <!-- Added ID for easier selection if needed -->
+  <button id="unlock-btn" class="btn large red rounded" type="button" onclick="navigate()">Unlock the Ritual →</button>
+  
   <script>
     function navigate() {
-      var host = window.location.hostname.toLowerCase();
+      // 1. Get the referrer (the page hosting the iframe)
+      // Since we are in an iframe, document.referrer tells us who loaded us.
+      var parentUrl = document.referrer || ""; 
+      
       var superHost = "thewayofwolf.super.site";
       var comHost = "thewayofwolf.com";
-      var useFixedPath = true;
       var fixedPath = "/join-the-challenge";
-      var path = useFixedPath ? fixedPath : window.location.pathname + window.location.search + window.location.hash;
-      var target;
-      if (host.includes("super.site")) {
-        target = "https://" + superHost + path;
-      } else if (host.includes(".com")) {
-        target = "https://" + comHost + path;
-      } else {
-        target = "https://" + comHost + path;
-      }
+      
+      // Default to the main .com site
+      var targetDomain = comHost;
 
-      try {
-        if (window.top && window.top !== window.self) {
-          window.top.location.href = target;
-          return;
-        }
-      } catch (err) {
-        // cross-origin access blocked
+      // 2. Check if the referrer is the super.site URL
+      if (parentUrl.includes("super.site")) {
+        targetDomain = superHost;
       }
+      
+      // 3. Construct the final target
+      var target = "https://" + targetDomain + fixedPath;
 
+      // 4. Force the redirect on the TOP window (breaking out of the iframe)
       try {
-        window.open(target, '_top');
-        return;
+          window.open(target, '_top');
       } catch (e) {
-        // blocked
+          // Fallback if window.open is blocked, though rare for user-initiated clicks
+          console.error("Redirection failed:", e);
       }
-
-      window.location.href = target;
     }
   </script>
 </body>
-
 </html>
