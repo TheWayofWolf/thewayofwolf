@@ -14,7 +14,6 @@
     </style>
 </head>
 <body>
-
     <div id="login-page-container">
         <h1 class="page-title">User Dashboard</h1>
         <form id="login-form">
@@ -24,41 +23,35 @@
             <p id="login-message"></p>
         </form>
     </div>
-
     <script>
         // --- CONFIGURATION ---
-        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-        const PROXY_URL = 'https://script.google.com/macros/s/AKfycbyOjXhCwO4oWamhC0isLXiHSv_3Sc0yGnsOJMdPAe3qJqStY9EIECB8ZLBiFGsuPH85/exec';
+        const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzPa5tDSqR3StyTsZaCW2YD55d0-0OVXEpJaxvCa-jw0aY37E0kxiH8vufAn4MtLsk/exec';
 
         // --- SCRIPT LOGIC ---
         const loginForm = document.getElementById('login-form');
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('login-message');
-
         loginForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             messageElement.textContent = '';
             submitButton.disabled = true;
             submitButton.textContent = 'Verifying...';
-
             const emailInput = document.getElementById('user-email').value.trim();
             const secretInput = document.getElementById('user-secret').value.trim();
-
             try {
-                // Call your new, secure Google Script proxy
+                // The check for an empty URL helps prevent confusion.
+                if (!PROXY_URL || PROXY_URL === 'PASTE_THE_GOOGLE_SCRIPT_URL_HERE') {
+                    throw new Error("Configuration error: The backend proxy URL is missing.");
+                }
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Required header for Apps Script
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: emailInput, secret: secretInput })
                 });
-
                 const data = await response.json();
-
-                if (data.object === 'error') {
-                    // Display the actual error message from Notion
-                    throw new Error(data.message || `API Error: Status ${data.status}`);
+                if (!response.ok) {
+                    throw new Error(data.message || `API Error: Status ${response.status}`);
                 }
-
                 if (data.results && data.results.length > 0) {
                     const dashboardUrl = data.results[0].properties.Dashboard.url;
                     if (dashboardUrl) {
@@ -69,18 +62,17 @@
                     }
                 } else {
                     messageElement.textContent = 'Access denied. Invalid email or secret code.';
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Access Dashboard';
                 }
-
             } catch (error) {
                 console.error('Login system error:', error);
                 messageElement.textContent = `${error.message}`;
-                submitButton.disabled = false;
-                submitButton.textContent = 'Access Dashboard';
+            } finally {
+                 if (!messageElement.textContent.includes('Redirecting')) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Access Dashboard';
+                }
             }
         });
     </script>
-
 </body>
 </html>
