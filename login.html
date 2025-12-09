@@ -25,6 +25,7 @@
     </div>
     <script>
         // --- CONFIGURATION ---
+        // Ensure this is your latest deployed Web App URL
         const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzPa5tDSqR3StyTsZaCW2YD55d0-0OVXEpJaxvCa-jw0aY37E0kxiH8vufAn4MtLsk/exec';
 
         // --- SCRIPT LOGIC ---
@@ -42,15 +43,16 @@
             const secretInput = document.getElementById('user-secret').value.trim();
 
             try {
+                // THE FIX: We send "text/plain" to skip the browser's security pre-check.
+                // The Google Script will still read it as JSON.
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: emailInput, secret: secretInput }),
-                    mode: 'cors'
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ email: emailInput, secret: secretInput })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Network error: Status ${response.status}`);
+                    throw new Error(`Network error: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -65,7 +67,7 @@
                         submitButton.textContent = 'Redirecting...';
                         window.location.href = dashboardUrl;
                     } else {
-                        throw new Error("Login successful, but Dashboard URL is missing in Notion.");
+                        throw new Error("Login successful, but the Dashboard URL is missing from Notion.");
                     }
                 } else {
                     messageElement.textContent = 'Access denied. Invalid email or secret code.';
