@@ -40,7 +40,7 @@
             const secretInput = document.getElementById('user-secret').value.trim();
             try {
                 // The check for an empty URL helps prevent confusion.
-                if (!PROXY_URL || PROXY_URL === 'https://script.google.com/macros/s/AKfycbzPa5tDSqR3StyTsZaCW2YD55d0-0OVXEpJaxvCa-jw0aY37E0kxiH8vufAn4MtLsk/exec') {
+                if (!PROXY_URL || PROXY_URL === 'PASTE_THE_GOOGLE_SCRIPT_URL_HERE') {
                     throw new Error("Configuration error: The backend proxy URL is missing.");
                 }
                 const response = await fetch(PROXY_URL, {
