@@ -5,15 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard Access</title>
     <style>
-        /* All your CSS styles remain the same */
-        #login-page-container { max-width: 420px; margin: 10vh auto; padding: 40px; background-color: #121212; border-radius: 10px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #login-page-container .page-title { color: #ffffff; font-size: 2.5rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 40px; }
-        #login-page-container .login-input { width: 100%; box-sizing: border-box; padding: 15px; margin-bottom: 20px; background-color: #1a1a1a; border: 1px solid #333; color: #fff; font-size: 16px; border-radius: 5px; }
-        #login-page-container .login-button { width: 100%; padding: 15px; background-color: #E53E3E; border: none; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: all 0.3s; }
-        #login-message { margin-top: 15px; color: #ffbaba; font-weight: bold; min-height: 20px; }
+        /* Styling for the login page container */
+        #login-page-container {
+            max-width: 420px;
+            margin: 10vh auto;
+            padding: 40px;
+            background-color: #121212;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Styling for the page title */
+        #login-page-container .page-title {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 40px;
+        }
+        /* Styling for the input fields */
+        #login-page-container .login-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        /* Styling for the login button */
+        #login-page-container .login-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #E53E3E;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        /* Hover effect for the login button */
+        #login-page-container .login-button:hover {
+            background-color: #C53030;
+        }
+        /* Styling for a disabled login button */
+        #login-page-container .login-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        /* Styling for the login message area */
+        #login-message {
+            margin-top: 15px;
+            color: #ffbaba;
+            font-weight: bold;
+            min-height: 20px;
+        }
     </style>
 </head>
 <body>
+
     <div id="login-page-container">
         <h1 class="page-title">User Dashboard</h1>
         <form id="login-form">
@@ -23,6 +79,7 @@
             <p id="login-message"></p>
         </form>
     </div>
+
     <script>
         // --- CONFIGURATION ---
         const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzPa5tDSqR3StyTsZaCW2YD55d0-0OVXEpJaxvCa-jw0aY37E0kxiH8vufAn4MtLsk/exec';
@@ -77,7 +134,7 @@
                             dashboardUrl = `https://www.notion.so/${cleanPageId}`;
                         }
                     } 
-                    // Fallback logic for URL or Text properties (just in case)
+                    // Fallback logic for URL or Text properties
                     else if (dashboardProp.type === 'url') {
                         dashboardUrl = dashboardProp.url;
                     } 
@@ -87,23 +144,26 @@
 
                     if (dashboardUrl) {
                         submitButton.textContent = 'Redirecting...';
-                        window.location.href = dashboardUrl;
+                        
+                        // --- THE FIX: Opens in the full main window (not the embed frame) ---
+                        window.top.location.href = dashboardUrl;
+                        
                     } else {
                         throw new Error("User found, but the 'Dashboard' column is empty.");
                     }
                 } else {
                     messageElement.textContent = 'Access denied. Invalid email or secret code.';
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Access Dashboard';
                 }
             } catch (error) {
                 console.error('Login error:', error);
                 messageElement.textContent = error.message;
-            } finally {
-                 if (submitButton.textContent !== 'Redirecting...') {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Access Dashboard';
-                }
+                submitButton.disabled = false;
+                submitButton.textContent = 'Access Dashboard';
             }
         });
     </script>
+
 </body>
 </html>
