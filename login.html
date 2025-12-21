@@ -67,6 +67,7 @@
             color: #4CAF50; /* Green color for success link */
             text-decoration: underline;
             cursor: pointer;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -96,7 +97,7 @@
             
             // Clear previous messages
             messageElement.textContent = '';
-            messageElement.style.color = "#ffbaba"; // Reset to error color by default
+            messageElement.style.color = "#ffbaba"; // Reset to error color
             
             submitButton.disabled = true;
             submitButton.textContent = 'Verifying...';
@@ -146,14 +147,21 @@
                         // --- SUCCESS ---
                         submitButton.textContent = 'Redirecting...';
                         
-                        // 1. Show the fallback link IMMEDIATELY in case popup is blocked
-                        messageElement.style.color = "#ffffff"; // White text for the label
-                        messageElement.innerHTML = `Success! <br><a href="${dashboardUrl}" target="_blank">Click here if you are not redirected automatically.</a>`;
+                        // 1. Show the fallback link IMMEDIATELY.
+                        // We use target="_top" to ensure it opens in the SAME TAB (Main Window)
+                        messageElement.style.color = "#ffffff"; 
+                        messageElement.innerHTML = `Success! <br><a href="${dashboardUrl}" target="_top">Click here if not redirected.</a>`;
 
-                        // 2. Attempt the automatic redirect
-                        window.open(dashboardUrl, '_blank');
+                        // 2. Attempt the automatic redirect to the Top Window
+                        try {
+                            window.top.location.href = dashboardUrl;
+                        } catch (e) {
+                            // If this fails (blocked by Notion), the code stops here, 
+                            // BUT the link above is already visible for the user to click.
+                            console.log("Automatic top-navigation blocked. User must click link.");
+                        }
 
-                        // 3. Keep the button disabled for a moment, then reset logic just in case
+                        // 3. Reset button state (if redirect didn't happen immediately)
                         setTimeout(() => {
                              submitButton.textContent = 'Access Dashboard';
                              submitButton.disabled = false;
@@ -169,7 +177,7 @@
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                messageElement.style.color = "#ffbaba"; // Error color
+                messageElement.style.color = "#ffbaba";
                 messageElement.textContent = error.message;
                 submitButton.disabled = false;
                 submitButton.textContent = 'Access Dashboard';
