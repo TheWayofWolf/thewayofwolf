@@ -16,7 +16,6 @@
             text-align: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        /* Styling for the page title */
         #login-page-container .page-title {
             color: #ffffff;
             font-size: 2.5rem;
@@ -24,7 +23,6 @@
             letter-spacing: 1px;
             margin-bottom: 40px;
         }
-        /* Styling for the input fields */
         #login-page-container .login-input {
             width: 100%;
             box-sizing: border-box;
@@ -36,7 +34,6 @@
             font-size: 16px;
             border-radius: 5px;
         }
-        /* Styling for the login button */
         #login-page-container .login-button {
             width: 100%;
             padding: 15px;
@@ -49,22 +46,27 @@
             border-radius: 5px;
             transition: all 0.3s;
         }
-        /* Hover effect for the login button */
         #login-page-container .login-button:hover {
             background-color: #C53030;
         }
-        /* Styling for a disabled login button */
         #login-page-container .login-button:disabled {
             background-color: #555;
             cursor: not-allowed;
             opacity: 0.7;
         }
-        /* Styling for the login message area */
         #login-message {
             margin-top: 15px;
             color: #ffbaba;
             font-weight: bold;
             min-height: 20px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        /* Style for the fallback link */
+        #login-message a {
+            color: #4CAF50; /* Green color for success link */
+            text-decoration: underline;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -82,7 +84,6 @@
 
     <script>
         // --- CONFIGURATION ---
-        // I have used the URL you provided in your logs
         const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzPa5tDSqR3StyTsZaCW2YD55d0-0OVXEpJaxvCa-jw0aY37E0kxiH8vufAn4MtLsk/exec';
 
         // --- SCRIPT LOGIC ---
@@ -92,7 +93,11 @@
 
         loginForm.addEventListener('submit', async function(event) {
             event.preventDefault();
+            
+            // Clear previous messages
             messageElement.textContent = '';
+            messageElement.style.color = "#ffbaba"; // Reset to error color by default
+            
             submitButton.disabled = true;
             submitButton.textContent = 'Verifying...';
 
@@ -100,10 +105,6 @@
             const secretInput = document.getElementById('user-secret').value.trim();
 
             try {
-                if (!PROXY_URL) {
-                    throw new Error("Configuration error: The backend proxy URL is missing.");
-                }
-
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -126,20 +127,14 @@
                          throw new Error("Column 'Dashboard' does not exist in the database.");
                     }
 
-                    // --- LOGIC FOR RELATION PROPERTY ---
+                    // --- EXTRACT URL LOGIC ---
                     if (dashboardProp.type === 'relation') {
                         if (dashboardProp.relation.length > 0) {
-                            // 1. Get the Page ID from the relation
                             const pageId = dashboardProp.relation[0].id;
-                            
-                            // 2. Remove hyphens to format it for a URL
                             const cleanPageId = pageId.replace(/-/g, "");
-                            
-                            // 3. Construct the full Notion URL
                             dashboardUrl = `https://www.notion.so/${cleanPageId}`;
                         }
                     } 
-                    // Fallback logic for URL or Text properties
                     else if (dashboardProp.type === 'url') {
                         dashboardUrl = dashboardProp.url;
                     } 
@@ -148,20 +143,22 @@
                     }
 
                     if (dashboardUrl) {
+                        // --- SUCCESS ---
                         submitButton.textContent = 'Redirecting...';
                         
-                        // --- THE FIX IS HERE ---
-                        // Instead of forcing window.top.location (which gets blocked),
-                        // we create an invisible link and click it. This bypasses the security check.
-                        
-                        const link = document.createElement('a');
-                        link.href = dashboardUrl;
-                        link.target = "_top"; // This targets the main window
-                        link.rel = "noopener noreferrer";
-                        document.body.appendChild(link);
-                        link.click(); // Programmatically click the link
-                        document.body.removeChild(link);
-                        
+                        // 1. Show the fallback link IMMEDIATELY in case popup is blocked
+                        messageElement.style.color = "#ffffff"; // White text for the label
+                        messageElement.innerHTML = `Success! <br><a href="${dashboardUrl}" target="_blank">Click here if you are not redirected automatically.</a>`;
+
+                        // 2. Attempt the automatic redirect
+                        window.open(dashboardUrl, '_blank');
+
+                        // 3. Keep the button disabled for a moment, then reset logic just in case
+                        setTimeout(() => {
+                             submitButton.textContent = 'Access Dashboard';
+                             submitButton.disabled = false;
+                        }, 3000);
+
                     } else {
                         throw new Error("User found, but the 'Dashboard' column is empty.");
                     }
@@ -172,6 +169,7 @@
                 }
             } catch (error) {
                 console.error('Login error:', error);
+                messageElement.style.color = "#ffbaba"; // Error color
                 messageElement.textContent = error.message;
                 submitButton.disabled = false;
                 submitButton.textContent = 'Access Dashboard';
